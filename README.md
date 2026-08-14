@@ -2,7 +2,7 @@
 
 <img width="2939" height="1670" alt="image" src="https://github.com/user-attachments/assets/4ec48599-5570-4d61-b6ba-d0a9b309d362" />
 
-## [Live Demo](https://supply-graph-cognodb.vercel.app/)
+## Click Here : [Live Demo](https://supply-graph-cognodb.vercel.app/)
 
 **Author**: Candidate Take-Home Submission  
 **Assignment**: Wexa AI — CognoDB Graph Database Application  
