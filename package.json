@@ -1,0 +1,24 @@
+{
+  "name": "supplypulse-graph-app",
+  "version": "1.0.0",
+  "description": "Global Supply Chain & Multi-Hop Risk Graph Application backed by CognoDB openCypher",
+  "main": "server/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server/index.js",
+    "server": "node server/index.js",
+    "seed": "node server/seed.js",
+    "client": "npm --prefix client run dev",
+    "build:client": "npm run build --prefix client",
+    "dev": "concurrently \"npm run server\" \"npm run client\""
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "neo4j-driver": "^5.23.0"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

@@ -1,0 +1,24 @@
+# Environment variables (SECRETS - NEVER COMMIT)
+.env
+.env.local
+.env.production
+
+# Dependencies
+node_modules/
+client/node_modules/
+
+# Production build outputs
+dist/
+client/dist/
+build/
+
+# Operating system / IDE files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Python / Environment caches
+__pycache__/
+.venv/
+*.pyc
