@@ -1,5 +1,10 @@
 # SupplyGraph — Supply Chain Multi-Hop Dependency & Risk Engine
 
+<img width="2939" height="1670" alt="image" src="https://github.com/user-attachments/assets/4ec48599-5570-4d61-b6ba-d0a9b309d362" />
+
+
+
+
 **Author**: Candidate Take-Home Submission  
 **Assignment**: Wexa AI — CognoDB Graph Database Application  
 **Database**: **CognoDB Cloud** (openCypher over Bolt protocol v5.0–5.4, official `neo4j-driver`)  
@@ -179,4 +184,4 @@ npm run seed
 ```bash
 npm run dev
 ```
-Open **`http://localhost:3000`** in your browser.
+Open **` https://supply-graph-cognodb.vercel.app/ `** in your browser.
