@@ -241,3 +241,127 @@ npm run seed
 npm run dev
 ```
 Open ** [Live Demo : ](https://supply-graph-cognodb-op7ryxair-gangadharreddy065-5671s-projects.vercel.app/) in your browser.
+
+# 3. Key Features
+
+## 3.1 Interactive Graph Topology
+
+SupplyGraph provides an interactive supply-chain graph visualization using `vis-network`.
+
+The graph represents:
+
+- Suppliers
+- Components
+- Materials
+- Products
+- Facilities
+- Supply relationships
+- Dependency relationships
+
+Users can visually explore how suppliers, components, materials, and products are connected across the supply chain.
+
+---
+
+## 3.2 Disruption Pathfinder
+
+The Disruption Pathfinder simulates a supplier disruption and traces its downstream impact.
+
+For a selected supplier, the application identifies:
+
+- Supplier information
+- Impacted products
+- Dependency paths
+- Path depth
+- Product information
+- Product revenue
+- Downstream revenue exposure
+
+The traversal supports up to **5 relationship hops**, allowing the application to detect both direct and indirect dependencies.
+
+---
+
+## 3.3 Multi-Hop Dependency Analysis
+
+SupplyGraph supports variable-length graph traversal across the supply chain.
+
+The application can trace dependencies across:
+```text
+Supplier
+   ↓
+Component
+   ↓
+Sub-Component
+   ↓
+Component / Material
+   ↓
+Product
+```
+
+
+
+## 3.4 Revenue-at-Risk Analysis
+
+SupplyGraph connects graph traversal results to business impact.
+
+For impacted products, the application displays product revenue and uses downstream product exposure to help estimate the potential revenue associated with a supplier disruption.
+
+This allows the system to move from:
+
+Graph Dependency
+       ↓
+Impacted Product
+       ↓
+Revenue Exposure
+## 3.5 Bottleneck / Single Point of Failure Analysis
+
+SupplyGraph identifies suppliers that represent potential bottlenecks or Single Points of Failure (SPOFs).
+
+The analysis considers:
+
+- Number of affected products
+- Revenue associated with affected products
+- Supplier tier
+- Supplier country
+- Supplier reliability score
+- Affected product details
+
+This helps identify suppliers whose disruption could have a significant downstream business impact.
+
+---
+
+## 3.6 Interactive Cypher Inspector
+
+The application provides an interactive interface for inspecting the openCypher queries used by the backend.
+
+This allows evaluators and developers to understand how the graph database is queried for:
+
+- Multi-hop disruption analysis
+- Product dependency traversal
+- Bottleneck detection
+- Revenue aggregation
+
+The application uses parameterized Cypher queries rather than concatenating user input into query strings.
+
+---
+
+## 3.7 Backend Verification
+
+SupplyGraph includes a backend verification interface that demonstrates the application's database and query implementation.
+
+The verification covers:
+
+- CognoDB connectivity
+- Official `neo4j-driver`
+- Driver session execution
+- Parameterized Cypher
+- Multi-hop traversal
+- Backend health
+- Automated verification results
+
+The verification interface provides a direct way for an evaluator to confirm that the application is connected to the graph database and executing the expected backend logic.
+
+Verified production state:
+
+```text
+Mode = LIVE_COGNODB
+Connected = true
