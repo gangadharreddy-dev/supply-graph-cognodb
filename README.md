@@ -1,16 +1,18 @@
 # SupplyGraph — Supply Chain Multi-Hop Dependency & Risk Engine
 
+<img width="2939" height="1662" alt="image" src="https://github.com/user-attachments/assets/c4799317-3c20-4899-92d2-fb35b3f890f3" />
+
 > Graph-powered supply-chain intelligence application for multi-tier dependency analysis, supplier disruption simulation, bottleneck detection, and revenue-at-risk analysis.
 
 **Wexa AI — CognoDB Take-Home Assignment**
 
 ## 🚀 Live Demo
 
-https://supply-graph-cognodb-op7ryxair-gangadharreddy065-5671s-projects.vercel.app/
+[Click Here](https://supply-graph-cognodb-op7ryxair-gangadharreddy065-5671s-projects.vercel.app/)
 
 ## 💻 Source Code
 
-https://github.com/gangadharreddy-dev/supply-graph-cognodb
+[Click Here](https://github.com/gangadharreddy-dev/supply-graph-cognodb)
 
 ---
 
@@ -528,10 +530,10 @@ If a real database password is ever exposed publicly, rotate it immediately.
 ## 19. Links
 
 **Live Demo:**  
-https://supply-graph-cognodb-op7ryxair-gangadharreddy065-5671s-projects.vercel.app/
+[Open](https://supply-graph-cognodb-op7ryxair-gangadharreddy065-5671s-projects.vercel.app/)
 
 **GitHub Repository:**  
-https://github.com/gangadharreddy-dev/supply-graph-cognodb
+[Open](https://github.com/gangadharreddy-dev/supply-graph-cognodb)
 
 ---
 
