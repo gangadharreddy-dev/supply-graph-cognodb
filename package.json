@@ -7,7 +7,8 @@
   "scripts": {
     "start": "node server/index.js",
     "server": "node server/index.js",
-    "seed": "node server/seed.js",
+    "seed": "node server/seed/seed.js",
+    "test:verify": "node server/verify.js",
     "client": "npm --prefix client run dev",
     "build:client": "npm run build --prefix client",
     "dev": "concurrently \"npm run server\" \"npm run client\""

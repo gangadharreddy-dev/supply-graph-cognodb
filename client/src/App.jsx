@@ -6,6 +6,7 @@ import BottleneckAnalysis from './components/BottleneckAnalysis';
 import QueryInspector from './components/QueryInspector';
 import CognoDBSetupModal from './components/CognoDBSetupModal';
 import DataModelDiagram from './components/DataModelDiagram';
+import BackendVerificationModal from './components/BackendVerificationModal';
 import { fetchHealthStatus, fetchGraphData, seedDatabase } from './api/client';
 
 export default function App() {
@@ -16,6 +17,7 @@ export default function App() {
   const [selectedSupplierId, setSelectedSupplierId] = useState('SUP-401');
   const [isSetupOpen, setIsSetupOpen] = useState(false);
   const [isDiagramOpen, setIsDiagramOpen] = useState(false);
+  const [isProofOpen, setIsProofOpen] = useState(false);
   const [isSeeding, setIsSeeding] = useState(false);
 
   const loadInitialData = async () => {
@@ -76,6 +78,7 @@ export default function App() {
         dbStatus={dbStatus}
         onOpenSetup={() => setIsSetupOpen(true)}
         onOpenDiagram={() => setIsDiagramOpen(true)}
+        onOpenProof={() => setIsProofOpen(true)}
         onSeed={handleSeedDatabase}
         isSeeding={isSeeding}
       />
@@ -115,6 +118,12 @@ export default function App() {
       <DataModelDiagram 
         isOpen={isDiagramOpen}
         onClose={() => setIsDiagramOpen(false)}
+      />
+
+      <BackendVerificationModal
+        isOpen={isProofOpen}
+        onClose={() => setIsProofOpen(false)}
+        dbStatus={dbStatus}
       />
 
     </div>

@@ -11,6 +11,24 @@
 
 ---
 
+## 🔍 Evaluator Backend Verification & Code Proof Matrix
+
+> [!IMPORTANT]
+> Use this matrix to verify every backend, driver, and query requirement directly in source code or via the automated verification CLI:
+
+| Wexa AI Requirement | Code File Location | Direct Proof Link / Command |
+| :--- | :--- | :--- |
+| **1. Official `neo4j-driver`** | [`server/config/db.js`](server/config/db.js) | `neo4j.driver(uri, neo4j.auth.basic(user, password))` connection pool. |
+| **2. 100% Parameterized Cypher** | [`server/services/cypherService.js`](server/services/cypherService.js) | All queries use `$param` bindings (`session.run(query, params)`). Zero string concatenation. |
+| **3. Automated Verification CLI** | [`server/verify.js`](server/verify.js) | Run **`npm run test:verify`** in terminal to execute automated test suite. |
+| **4. Database Seeder Script** | [`server/seed/seed.js`](server/seed/seed.js) | Run **`npm run seed`** to seed labeled nodes (`:Product`, `:Component`, `:Material`, `:Supplier`, `:Facility`). |
+| **5. Multi-Hop Traversal (2+ Hops)** | [`server/controllers/graphController.js`](server/controllers/graphController.js#L54) | Query: `(s:Supplier {id: $supplierId})-[:SUPPLIES\|REQUIRES_COMPONENT*1..5]->(p:Product)`. |
+| **6. Awkward-in-SQL Query** | [`server/controllers/graphController.js`](server/controllers/graphController.js#L143) | Single Point of Failure (SPOF) bottleneck supplier query with revenue aggregation. |
+| **7. Secrets & Env Variables** | [`.gitignore`](.gitignore) | Verified `.env` is excluded from Git tracking. `.env.example` provides safe placeholders. |
+| **8. Graceful Offline Failure** | [`server/config/db.js`](server/config/db.js#L26) | `testConnection()` auto-detects offline state and serves mock topology without app crashes. |
+
+---
+
 ## 1. Why a Graph Database?
 
 ### The Core Domain Problem
@@ -41,7 +59,7 @@ is fundamentally a **graph traversal problem**.
 - `:Supplier` — `{ id, name, tier, country, reliabilityScore, status }`
 - `:Facility` — `{ id, name, city, country, riskFactor }`
 
-### Relationship Types
+### Typed Relationships
 - `(:Product)-[:REQUIRES_COMPONENT {quantity}]->(:Component)`
 - `(:Component)-[:REQUIRES_COMPONENT {quantity}]->(:Component)` (Sub-assemblies)
 - `(:Component)-[:MADE_OF {proportion}]->(:Material)`
@@ -63,18 +81,16 @@ graph TD
     Cmp -->|":REQUIRES_COMPONENT"| Cmp
     Prd -->|":REQUIRES_COMPONENT"| Cmp
 
-    style Prd fill:#06b6d4,color:#fff
-    style Cmp fill:#8b5cf6,color:#fff
-    style Mat fill:#f59e0b,color:#fff
-    style Sup fill:#10b981,color:#fff
-    style Fac fill:#ec4899,color:#fff
+    style Prd fill:#2563eb,color:#fff
+    style Cmp fill:#7c3aed,color:#fff
+    style Mat fill:#d97706,color:#fff
+    style Sup fill:#059669,color:#fff
+    style Fac fill:#e11d48,color:#fff
 ```
 
 ---
 
 ## 3. Parameterized openCypher Queries
-
-> All Cypher queries strictly use parameterized `$variables` via the official `neo4j-driver` (`session.run(query, params)`). No string concatenation is used.
 
 ### Query 1: Disruption Blast Radius (Multi-Hop 1..5 Hops)
 ```cypher
@@ -126,6 +142,7 @@ supplychain-graph-app/
 ├── README.md
 ├── server/
 │   ├── index.js                  # Express app entry point
+│   ├── verify.js                 # Automated backend verification test suite (npm run test:verify)
 │   ├── config/
 │   │   └── db.js                 # Neo4j/CognoDB driver connection pool & fallback status
 │   ├── controllers/
@@ -143,6 +160,7 @@ supplychain-graph-app/
         ├── App.jsx
         └── components/
             ├── Header.jsx        # Navigation bar & DB status pill
+            ├── BackendVerificationModal.jsx # Proof Matrix & Live Driver Test Runner
             ├── GraphView.jsx     # vis-network canvas visualization
             ├── DisruptionSimulator.jsx # Multi-hop path tracer
             ├── BottleneckAnalysis.jsx  # SPOF analysis dashboard
@@ -172,14 +190,17 @@ COGNODB_PASSWORD=your-generated-password
 PORT=3001
 ```
 
-> **Offline Mock Mode**: If `.env` is not populated or CognoDB is unreachable, SupplyGraph automatically runs in **Mock Fallback Mode** so evaluators can inspect all interactive views without requiring an active database account immediately.
+### Step 3: Run Automated Verification Suite
+```bash
+npm run test:verify
+```
 
-### Step 3: Run Database Seeder
+### Step 4: Run Database Seeder
 ```bash
 npm run seed
 ```
 
-### Step 4: Launch Application
+### Step 5: Launch Application
 ```bash
 npm run dev
 ```

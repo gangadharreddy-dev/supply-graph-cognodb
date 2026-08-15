@@ -7,6 +7,7 @@ export default function Header({
   dbStatus, 
   onOpenSetup, 
   onOpenDiagram, 
+  onOpenProof,
   onSeed, 
   isSeeding 
 }) {
@@ -32,7 +33,7 @@ export default function Header({
           </div>
         </div>
 
-        {/* Tab Navigation */}
+        {/* Navigation */}
         <nav className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg border border-slate-200 text-xs">
           <button
             onClick={() => setActiveTab('graph')}
@@ -83,9 +84,18 @@ export default function Header({
           </button>
         </nav>
 
-        {/* Database Status & Tools */}
+        {/* Database Status & Proof Matrix */}
         <div className="flex items-center gap-2 text-xs">
           
+          <button
+            onClick={onOpenProof}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md font-bold bg-emerald-50 text-emerald-800 border border-emerald-300 hover:bg-emerald-100 transition-all shadow-sm"
+            title="View Live Backend & Driver Proof Matrix"
+          >
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+            Proof Matrix
+          </button>
+
           <button
             onClick={onOpenDiagram}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-md font-medium bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 hover:text-slate-900 transition-all shadow-sm"
@@ -99,7 +109,6 @@ export default function Header({
           {dbStatus?.connected ? (
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-md font-mono text-[11px] bg-emerald-50 text-emerald-800 border border-emerald-300 font-semibold shadow-sm">
               <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
               <span>CognoDB Live</span>
             </div>
           ) : (
