@@ -205,4 +205,4 @@ npm run seed
 ```bash
 npm run dev
 ```
-Open ** (https://supply-graph-cognodb.vercel.app/) in your browser.
+Open ** [Live Demo : ](https://supply-graph-cognodb-op7ryxair-gangadharreddy065-5671s-projects.vercel.app/) in your browser.
