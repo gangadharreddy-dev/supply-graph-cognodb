@@ -1,16 +1,10 @@
 # SupplyGraph — Supply Chain Multi-Hop Dependency & Risk Engine
 
-> A graph-powered supply-chain intelligence application for exploring multi-tier dependencies, simulating supplier disruptions, identifying bottleneck suppliers, and estimating downstream revenue at risk.
+> Graph-powered supply-chain intelligence application for multi-tier dependency analysis, supplier disruption simulation, bottleneck detection, and revenue-at-risk analysis.
 
-<p align="center">
-  <strong>Wexa AI — CognoDB Take-Home Assignment</strong>
-</p>
-
----
+**Wexa AI — CognoDB Take-Home Assignment**
 
 ## 🚀 Live Demo
-
-**Production Application:**
 
 https://supply-graph-cognodb-op7ryxair-gangadharreddy065-5671s-projects.vercel.app/
 
@@ -20,11 +14,9 @@ https://github.com/gangadharreddy-dev/supply-graph-cognodb
 
 ---
 
-# 1. Project Overview
+## 1. Overview
 
-SupplyGraph is a graph-based supply-chain dependency and risk analysis application built for the Wexa AI CognoDB take-home assignment.
-
-The application models a technology supply chain as a connected graph containing:
+SupplyGraph models a technology supply chain as a graph containing:
 
 - Suppliers
 - Components
@@ -32,130 +24,201 @@ The application models a technology supply chain as a connected graph containing
 - Products
 - Facilities
 
-It allows users to:
+The application answers questions such as:
 
-- Explore multi-tier supply-chain dependencies
-- Visualize the supply-chain graph
-- Simulate supplier disruptions
-- Identify affected downstream products
-- Trace dependency paths across multiple hops
-- Estimate revenue exposure
-- Identify potential bottleneck and Single Point of Failure (SPOF) suppliers
-- Inspect the underlying openCypher queries
-- Verify the live CognoDB backend connection
+> If a supplier is disrupted, which downstream products are affected, how many dependency hops are involved, and what revenue is potentially at risk?
 
-The core business question is:
-
-> **If a supplier experiences a disruption, which downstream products are affected, how deep is the dependency path, and what revenue is potentially at risk?**
-
-This is naturally a graph traversal problem because the impact of a supplier can propagate through multiple components, sub-components, materials, and products.
-
-SupplyGraph uses **CognoDB Cloud** with **openCypher** over the **Bolt protocol**, accessed through the official `neo4j-driver`.
+The application uses **CognoDB Cloud**, **openCypher**, the **Bolt protocol**, and the official **`neo4j-driver`**.
 
 ---
 
-# 2. Why a Graph Database?
+## 2. Key Features
 
-Supply chains are naturally represented as directed dependency graphs.
+- Interactive supply-chain graph visualization
+- Multi-hop dependency traversal
+- Supplier disruption simulation
+- Impacted product identification
+- Dependency path and depth analysis
+- Revenue-at-risk analysis
+- Bottleneck / Single Point of Failure (SPOF) detection
+- Interactive Cypher query inspection
+- Live CognoDB backend verification
+- Parameterized Cypher queries
+- Automated backend verification
+- Graceful mock fallback when the database is unavailable
 
-A simplified dependency chain looks like:
+---
+
+## 3. Why a Graph Database?
+
+Supply chains are naturally represented as connected dependency graphs:
 
 ```text
 Supplier
-   │
-   │ SUPPLIES
-   ▼
+   ↓ SUPPLIES
 Component
-   │
-   │ REQUIRES_COMPONENT
-   ▼
+   ↓ REQUIRES_COMPONENT
 Sub-Component
-   │
-   │ REQUIRES_COMPONENT / MADE_OF
-   ▼
-Component / Material
-   │
-   │ REQUIRES_COMPONENT
-   ▼
+   ↓ REQUIRES_COMPONENT / MADE_OF
+Material / Component
+   ↓
 Product
-| Architectural Dimension | Relational DB (PostgreSQL) | Graph DB (CognoDB openCypher) |
-| :--- | :--- | :--- |
-| **Multi-Hop Traversal (2–5 Hops)** | Requires 5–7 table `JOIN`s or complex `WITH RECURSIVE` CTEs. Execution time degrades exponentially with path depth. | Expressed in a **single Cypher pattern**: `(s:Supplier)-[:SUPPLIES\|REQUIRES_COMPONENT*1..5]->(p:Product)`. Executed in milliseconds via index-free adjacency. |
-| **Bottleneck & SPOF Detection** | Grouping across recursive variable-length subtrees with distinct count aggregations requires heavy memory buffer scans and temporary tables. | Solved cleanly via pattern matching: `MATCH (p:Product)-[:REQUIRES_COMPONENT*1..5]->(c:Component)<-[:SUPPLIES]-(s:Supplier)` with aggregations over distinct product nodes. |
-| **Schema Flexibility** | Adding new entity types (e.g., logistics hubs, transport routes, weather risks) requires `ALTER TABLE` DDL migrations and foreign key schema updates across multiple tables. | Graph schemas are naturally flexible. New node labels and relationship types can be added dynamically without altering existing queries. |
+```
+
+Multi-hop dependency analysis can require complex joins or recursive queries in a relational database. A graph database allows these relationships to be expressed directly using variable-length graph traversal.
 
 ---
 
-## 2. Data Model Specification
+## 4. Technology Stack
 
-### Entity Labels & Properties
-- `:Product` — `{ id, name, sku, revenue, category, riskScore }`
-- `:Component` — `{ id, name, code, leadTimeDays, unitCost }`
-- `:Material` — `{ id, name, category, scarcityIndex }`
-- `:Supplier` — `{ id, name, tier, country, reliabilityScore, status }`
-- `:Facility` — `{ id, name, city, country, riskFactor }`
+| Layer | Technology |
+|---|---|
+| Frontend | React, Vite, Tailwind CSS |
+| Graph Visualization | vis-network |
+| Backend | Node.js, Express |
+| Database | CognoDB Cloud |
+| Query Language | openCypher |
+| Database Driver | official `neo4j-driver` |
+| Protocol | Bolt |
+| Deployment | Vercel |
 
-### Typed Relationships
-- `(:Product)-[:REQUIRES_COMPONENT {quantity}]->(:Component)`
-- `(:Component)-[:REQUIRES_COMPONENT {quantity}]->(:Component)` (Sub-assemblies)
-- `(:Component)-[:MADE_OF {proportion}]->(:Material)`
-- `(:Supplier)-[:SUPPLIES {leadTimeDays, isPrimary}]->(:Component|Material)`
-- `(:Supplier)-[:LOCATED_AT]->(:Facility)`
+---
 
-```mermaid
-graph TD
-    Fac[":Facility"]
-    Sup[":Supplier"]
-    Mat[":Material"]
-    Cmp[":Component"]
-    Prd[":Product"]
+## 5. Data Model
 
-    Sup -->|":LOCATED_AT"| Fac
-    Sup -->|":SUPPLIES"| Mat
-    Sup -->|":SUPPLIES"| Cmp
-    Cmp -->|":MADE_OF"| Mat
-    Cmp -->|":REQUIRES_COMPONENT"| Cmp
-    Prd -->|":REQUIRES_COMPONENT"| Cmp
+### Nodes
 
-    style Prd fill:#2563eb,color:#fff
-    style Cmp fill:#7c3aed,color:#fff
-    style Mat fill:#d97706,color:#fff
-    style Sup fill:#059669,color:#fff
-    style Fac fill:#e11d48,color:#fff
+```text
+:Product
+:Component
+:Material
+:Supplier
+:Facility
+```
+
+### Main Properties
+
+**Product**
+
+```text
+id, name, sku, revenue, category, riskScore
+```
+
+**Component**
+
+```text
+id, name, code, leadTimeDays, unitCost
+```
+
+**Material**
+
+```text
+id, name, category, scarcityIndex
+```
+
+**Supplier**
+
+```text
+id, name, tier, country, reliabilityScore, status
+```
+
+**Facility**
+
+```text
+id, name, city, country, riskFactor
+```
+
+### Relationships
+
+```text
+(:Product)-[:REQUIRES_COMPONENT]->(:Component)
+
+(:Component)-[:REQUIRES_COMPONENT]->(:Component)
+
+(:Component)-[:MADE_OF]->(:Material)
+
+(:Supplier)-[:SUPPLIES]->(:Component)
+
+(:Supplier)-[:SUPPLIES]->(:Material)
+
+(:Supplier)-[:LOCATED_AT]->(:Facility)
 ```
 
 ---
 
-## 3. Parameterized openCypher Queries
+## 6. Multi-Hop Disruption Analysis
 
-### Query 1: Disruption Blast Radius (Multi-Hop 1..5 Hops)
+The application traces supplier impact across **1–5 hops**.
+
+Example query pattern:
+
 ```cypher
 MATCH (s:Supplier {id: $supplierId})
-MATCH path = (s)-[:SUPPLIES|REQUIRES_COMPONENT|MADE_OF*1..5]->(p:Product)
-WITH s, p, path, length(path) as depth
-RETURN 
+MATCH path =
+  (s)-[:SUPPLIES|REQUIRES_COMPONENT|MADE_OF*1..5]->(p:Product)
+WITH s, p, path, length(path) AS depth
+RETURN
   s.id AS supplierId,
   s.name AS supplierName,
-  s.tier AS supplierTier,
   p.id AS productId,
   p.name AS productName,
   p.sku AS productSku,
   p.revenue AS productRevenue,
   depth,
-  [node IN nodes(path) | {
-    id: node.id,
-    name: coalesce(node.name, node.id),
-    label: labels(node)[0]
-  }] AS pathNodes
+  [
+    node IN nodes(path) |
+    {
+      id: node.id,
+      name: coalesce(node.name, node.id),
+      label: labels(node)[0]
+    }
+  ] AS pathNodes
 ORDER BY p.revenue DESC, depth ASC
 ```
 
-### Query 2: Bottleneck SPOF Supplier Detection (Awkward in SQL)
+The supplier ID is passed as the parameter:
+
+```text
+$supplierId
+```
+
+---
+
+## 7. Bottleneck / SPOF Analysis
+
+SupplyGraph identifies suppliers that affect multiple downstream products.
+
+The analysis calculates:
+
+- Affected product count
+- Revenue at risk
+- Supplier tier
+- Supplier country
+- Reliability score
+- Affected products
+
+Example query:
+
 ```cypher
-MATCH (p:Product)-[:REQUIRES_COMPONENT*1..5]->(c:Component)<-[:SUPPLIES]-(s:Supplier)
-WITH s, count(DISTINCT p) AS affectedProductsCount, sum(DISTINCT p.revenue) AS totalRevenueAtRisk, collect(DISTINCT {id: p.id, name: p.name, revenue: p.revenue}) AS products
+MATCH
+  (p:Product)-[:REQUIRES_COMPONENT*1..5]->(c:Component)
+  <-[:SUPPLIES]-(s:Supplier)
+
+WITH
+  s,
+  count(DISTINCT p) AS affectedProductsCount,
+  sum(DISTINCT p.revenue) AS totalRevenueAtRisk,
+  collect(
+    DISTINCT {
+      id: p.id,
+      name: p.name,
+      revenue: p.revenue
+    }
+  ) AS products
+
 WHERE affectedProductsCount >= $minProducts
-RETURN 
+
+RETURN
   s.id AS supplierId,
   s.name AS supplierName,
   s.tier AS supplierTier,
@@ -164,262 +227,318 @@ RETURN
   affectedProductsCount,
   totalRevenueAtRisk,
   products
+
 ORDER BY affectedProductsCount DESC, totalRevenueAtRisk DESC
 ```
 
 ---
 
-## 4. Engineering Architecture & Project Structure
+## 8. Parameterized Cypher Security
 
+All backend Cypher queries use parameters instead of string concatenation.
+
+The application executes queries using:
+
+```javascript
+session.run(query, params)
 ```
-supplychain-graph-app/
-├── package.json
-├── .env.example
-├── README.md
-├── server/
-│   ├── index.js                  # Express app entry point
-│   ├── verify.js                 # Automated backend verification test suite (npm run test:verify)
-│   ├── config/
-│   │   └── db.js                 # Neo4j/CognoDB driver connection pool & fallback status
-│   ├── controllers/
-│   │   └── graphController.js    # API controller handling graph, simulation & bottleneck queries
-│   ├── services/
-│   │   └── cypherService.js     # openCypher query catalog
-│   ├── routes/
-│   │   └── api.js                # Express REST router
-│   └── seed/
-│       ├── seedData.json         # Real-world seed dataset (TSMC, ASML, Apple, Tesla)
-│       └── seed.js               # Database seeder script
-└── client/
-    ├── vite.config.js
-    └── src/
-        ├── App.jsx
-        └── components/
-            ├── Header.jsx        # Navigation bar & DB status pill
-            ├── BackendVerificationModal.jsx # Proof Matrix & Live Driver Test Runner
-            ├── GraphView.jsx     # vis-network canvas visualization
-            ├── DisruptionSimulator.jsx # Multi-hop path tracer
-            ├── BottleneckAnalysis.jsx  # SPOF analysis dashboard
-            └── QueryInspector.jsx      # openCypher terminal console
+
+Example:
+
+```javascript
+const params = {
+  supplierId
+};
+
+await session.run(query, params);
+```
+
+### Verification
+
+```text
+Verifying Cypher Parameterization Security...
+✅ PASS: 100% of Cypher queries use parameterized $variables
+   Zero string concatenation.
+
+🎉 VERIFICATION RESULT: 4 Passed, 0 Failed
 ```
 
 ---
 
-## 5. Local Setup & Execution Guide
+## 9. CognoDB Configuration
 
-### Step 1: Install Dependencies
-```bash
-npm install
-cd client && npm install && cd ..
-```
+The application connects to CognoDB Cloud using:
 
-### Step 2: Configure Environment Variables
-Copy `.env.example` to `.env`:
-```bash
-cp .env.example .env
-```
-Fill in your CognoDB Cloud credentials:
 ```env
-COGNODB_URI=bolt+s://your-instance-id.databases.cognodb.cloud
+COGNODB_URI=bolt+s://db-42473a80.databases.cognodb.com
 COGNODB_USER=cognodb
 COGNODB_PASSWORD=your-generated-password
 PORT=3001
 ```
 
-### Step 3: Run Automated Verification Suite
-```bash
-npm run test:verify
-```
+**Important:** The real database password must never be committed to this README or GitHub. Configure it through `.env` locally or Vercel Environment Variables in production.
 
-### Step 4: Run Database Seeder
+---
+
+## 10. Database Seeder
+
+The project includes a seed dataset and database seeder.
+
+Run:
+
 ```bash
 npm run seed
 ```
 
-### Step 5: Launch Application
+The seeder creates the required graph nodes and relationships for the application.
+
+---
+
+## 11. Backend Verification
+
+Run the automated verification suite:
+
 ```bash
-npm run dev
+npm run test:verify
 ```
-Open ** [Live Demo : ](https://supply-graph-cognodb-op7ryxair-gangadharreddy065-5671s-projects.vercel.app/) in your browser.
-
-# 3. Key Features
-
-## 3.1 Interactive Graph Topology
-
-SupplyGraph provides an interactive supply-chain graph visualization using `vis-network`.
-
-The graph represents:
-
-- Suppliers
-- Components
-- Materials
-- Products
-- Facilities
-- Supply relationships
-- Dependency relationships
-
-Users can visually explore how suppliers, components, materials, and products are connected across the supply chain.
-
----
-
-## 3.2 Disruption Pathfinder
-
-The Disruption Pathfinder simulates a supplier disruption and traces its downstream impact.
-
-For a selected supplier, the application identifies:
-
-- Supplier information
-- Impacted products
-- Dependency paths
-- Path depth
-- Product information
-- Product revenue
-- Downstream revenue exposure
-
-The traversal supports up to **5 relationship hops**, allowing the application to detect both direct and indirect dependencies.
-
----
-
-## 3.3 Multi-Hop Dependency Analysis
-
-SupplyGraph supports variable-length graph traversal across the supply chain.
-
-The application can trace dependencies across:
-```text
-Supplier
-   ↓
-Component
-   ↓
-Sub-Component
-   ↓
-Component / Material
-   ↓
-Product
-```
-
-
-
-## 3.4 Revenue-at-Risk Analysis
-
-SupplyGraph connects graph traversal results to business impact.
-
-For impacted products, the application displays product revenue and uses downstream product exposure to help estimate the potential revenue associated with a supplier disruption.
-
-This allows the system to move from:
-
-Graph Dependency
-       ↓
-Impacted Product
-       ↓
-Revenue Exposure
-## 3.5 Bottleneck / Single Point of Failure Analysis
-
-SupplyGraph identifies suppliers that represent potential bottlenecks or Single Points of Failure (SPOFs).
-
-The analysis considers:
-
-- Number of affected products
-- Revenue associated with affected products
-- Supplier tier
-- Supplier country
-- Supplier reliability score
-- Affected product details
-
-This helps identify suppliers whose disruption could have a significant downstream business impact.
-
----
-
-## 3.6 Interactive Cypher Inspector
-
-The application provides an interactive interface for inspecting the openCypher queries used by the backend.
-
-This allows evaluators and developers to understand how the graph database is queried for:
-
-- Multi-hop disruption analysis
-- Product dependency traversal
-- Bottleneck detection
-- Revenue aggregation
-
-The application uses parameterized Cypher queries rather than concatenating user input into query strings.
-
----
-
-## 3.7 Backend Verification
-
-SupplyGraph includes a backend verification interface that demonstrates the application's database and query implementation.
-
-The verification covers:
-
-- CognoDB connectivity
-- Official `neo4j-driver`
-- Driver session execution
-- Parameterized Cypher
-- Multi-hop traversal
-- Backend health
-- Automated verification results
-
-The verification interface provides a direct way for an evaluator to confirm that the application is connected to the graph database and executing the expected backend logic.
 
 Verified production state:
 
 ```text
 Mode = LIVE_COGNODB
 Connected = true
+
+✅ neo4j-driver session execution verified!
 ```
-# 4. Technology Stack
 
-## Frontend
+Automated verification:
 
-- **React** — Component-based user interface
-- **Vite** — Frontend development and build tooling
-- **Tailwind CSS** — Responsive UI styling
-- **vis-network** — Interactive graph visualization
-
-## Backend
-
-- **Node.js** — Backend runtime
-- **Express.js** — REST API server
-
-## Database
-
-- **CognoDB Cloud** — Graph database
-- **openCypher** — Graph query language
-- **Bolt Protocol** — Database communication protocol
-
-## Database Driver
-
-- **Official `neo4j-driver`** — Used to establish the CognoDB connection and execute Cypher queries
-
-## Deployment
-
-- **Vercel** — Production deployment
+```text
+🎉 VERIFICATION RESULT: 4 Passed, 0 Failed
+```
 
 ---
 
-## Architecture Overview
+## 12. Graceful Database Failure
+
+The backend detects database connectivity problems and can fall back to mock topology data instead of crashing the application.
+
+The application exposes the backend state:
 
 ```text
-┌─────────────────────────────────────────────┐
-│                 React Client                │
-│                                             │
-│  Graph View │ Disruption │ SPOF │ Queries  │
-└──────────────────────┬──────────────────────┘
-                       │
-                       │ REST API
-                       ▼
-┌─────────────────────────────────────────────┐
-│              Node.js / Express              │
-│                                             │
-│ Controllers │ Services │ Routes │ Verify   │
-└──────────────────────┬──────────────────────┘
-                       │
-                       │ neo4j-driver
-                       │ Bolt Protocol
-                       ▼
-┌─────────────────────────────────────────────┐
-│                CognoDB Cloud                │
-│                                             │
-│              openCypher Graph               │
-│                                             │
-│ Supplier → Component → Material → Product  │
-└─────────────────────────────────────────────┘
+LIVE_COGNODB
+```
+
+or:
+
+```text
+MOCK_FALLBACK
+```
+
+This makes database availability visible to the user.
+
+---
+
+## 13. Project Structure
+
+```text
+supplychain-graph-app/
+├── package.json
+├── .env.example
+├── README.md
+├── .gitignore
+│
+├── server/
+│   ├── index.js
+│   ├── verify.js
+│   ├── config/
+│   │   └── db.js
+│   ├── controllers/
+│   │   └── graphController.js
+│   ├── services/
+│   │   └── cypherService.js
+│   ├── routes/
+│   │   └── api.js
+│   └── seed/
+│       ├── seedData.json
+│       └── seed.js
+│
+└── client/
+    ├── vite.config.js
+    └── src/
+        ├── App.jsx
+        └── components/
+            ├── Header.jsx
+            ├── BackendVerificationModal.jsx
+            ├── GraphView.jsx
+            ├── DisruptionSimulator.jsx
+            ├── BottleneckAnalysis.jsx
+            └── QueryInspector.jsx
+```
+
+---
+
+## 14. Local Setup
+
+### Clone
+
+```bash
+git clone https://github.com/gangadharreddy-dev/supply-graph-cognodb.git
+cd supply-graph-cognodb
+```
+
+### Install dependencies
+
+```bash
+npm install
+
+cd client
+npm install
+cd ..
+```
+
+### Configure environment
+
+```bash
+cp .env.example .env
+```
+
+Add:
+
+```env
+COGNODB_URI=bolt+s://db-42473a80.databases.cognodb.com
+COGNODB_USER=cognodb
+COGNODB_PASSWORD=your-generated-password
+PORT=3001
+```
+
+### Verify backend
+
+```bash
+npm run test:verify
+```
+
+### Seed database
+
+```bash
+npm run seed
+```
+
+### Start application
+
+```bash
+npm run dev
+```
+
+---
+
+## 15. Evaluator Verification Matrix
+
+| Requirement | Implementation |
+|---|---|
+| Official `neo4j-driver` | `server/config/db.js` |
+| Parameterized Cypher | `server/services/cypherService.js` |
+| Automated verification | `server/verify.js` |
+| Database seeder | `server/seed/seed.js` |
+| Multi-hop traversal | `server/controllers/graphController.js` |
+| SPOF analysis | `server/controllers/graphController.js` |
+| Environment secrets | `.env`, `.env.example`, `.gitignore` |
+| Graceful database failure | `server/config/db.js` |
+| Graph visualization | `GraphView.jsx` |
+| Disruption simulation | `DisruptionSimulator.jsx` |
+| Bottleneck analysis | `BottleneckAnalysis.jsx` |
+| Cypher inspection | `QueryInspector.jsx` |
+| Backend verification UI | `BackendVerificationModal.jsx` |
+
+---
+
+## 16. Verification Summary
+
+```text
+CognoDB Connection
+        ✅ LIVE_COGNODB
+        ✅ Connected = true
+
+neo4j-driver
+        ✅ Session execution verified
+
+Cypher Security
+        ✅ 100% parameterized
+        ✅ Zero string concatenation
+
+Automated Verification
+        ✅ 4 Passed
+        ❌ 0 Failed
+
+Multi-Hop Traversal
+        ✅ 1..5 hops
+
+Database Seeder
+        ✅ Available
+
+Graceful Fallback
+        ✅ Implemented
+```
+
+---
+
+## 17. Demo Flow
+
+Recommended evaluator flow:
+
+```text
+Open Live Demo
+      ↓
+Explore Graph
+      ↓
+Select Supplier
+      ↓
+Run Disruption Analysis
+      ↓
+View Multi-Hop Impact Paths
+      ↓
+Review Impacted Products
+      ↓
+Review Revenue Exposure
+      ↓
+Run Bottleneck / SPOF Analysis
+      ↓
+Inspect Cypher Query
+      ↓
+Open Backend Verification
+      ↓
+Confirm LIVE_COGNODB
+```
+
+---
+
+## 18. Security
+
+- Database credentials are stored in environment variables.
+- `.env` is excluded from Git tracking.
+- `.env.example` contains placeholders only.
+- Cypher queries use parameterized `$variables`.
+- No user-provided values are concatenated directly into Cypher queries.
+- The real CognoDB password should never be stored in this README.
+
+If a real database password is ever exposed publicly, rotate it immediately.
+
+---
+
+## 19. Links
+
+**Live Demo:**  
+https://supply-graph-cognodb-op7ryxair-gangadharreddy065-5671s-projects.vercel.app/
+
+**GitHub Repository:**  
+https://github.com/gangadharreddy-dev/supply-graph-cognodb
+
+---
+
+## Author
+
+**Candidate Take-Home Submission**
+
+**Assignment:** Wexa AI — CognoDB Graph Database Application
+
+**Project:** SupplyGraph
