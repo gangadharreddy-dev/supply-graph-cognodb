@@ -1,48 +1,83 @@
 # SupplyGraph — Supply Chain Multi-Hop Dependency & Risk Engine
 
-<img width="2939" height="1662" alt="image" src="https://github.com/user-attachments/assets/f0593dc7-ed04-461a-94d8-43c298062284" />
+> A graph-powered supply-chain intelligence application for exploring multi-tier dependencies, simulating supplier disruptions, identifying bottleneck suppliers, and estimating downstream revenue at risk.
 
-
-## Click Here : [Live Demo](https://supply-graph-cognodb-op7ryxair-gangadharreddy065-5671s-projects.vercel.app/)
-
-**Author**: Candidate Take-Home Submission  
-**Assignment**: Wexa AI — CognoDB Graph Database Application  
-**Database**: **CognoDB Cloud** (openCypher over Bolt protocol v5.0–5.4, official `neo4j-driver`)  
-**Stack**: Node.js (Express), React, Vite, Tailwind CSS, `vis-network`
+<p align="center">
+  <strong>Wexa AI — CognoDB Take-Home Assignment</strong>
+</p>
 
 ---
 
-## 🔍 Evaluator Backend Verification & Code Proof Matrix
+## 🚀 Live Demo
 
-> [!IMPORTANT]
-> Use this matrix to verify every backend, driver, and query requirement directly in source code or via the automated verification CLI:
+**Production Application:**
 
-| Wexa AI Requirement | Code File Location | Direct Proof Link / Command |
-| :--- | :--- | :--- |
-| **1. Official `neo4j-driver`** | [`server/config/db.js`](server/config/db.js) | `neo4j.driver(uri, neo4j.auth.basic(user, password))` connection pool. |
-| **2. 100% Parameterized Cypher** | [`server/services/cypherService.js`](server/services/cypherService.js) | All queries use `$param` bindings (`session.run(query, params)`). Zero string concatenation. |
-| **3. Automated Verification CLI** | [`server/verify.js`](server/verify.js) | Run **`npm run test:verify`** in terminal to execute automated test suite. |
-| **4. Database Seeder Script** | [`server/seed/seed.js`](server/seed/seed.js) | Run **`npm run seed`** to seed labeled nodes (`:Product`, `:Component`, `:Material`, `:Supplier`, `:Facility`). |
-| **5. Multi-Hop Traversal (2+ Hops)** | [`server/controllers/graphController.js`](server/controllers/graphController.js#L54) | Query: `(s:Supplier {id: $supplierId})-[:SUPPLIES\|REQUIRES_COMPONENT*1..5]->(p:Product)`. |
-| **6. Awkward-in-SQL Query** | [`server/controllers/graphController.js`](server/controllers/graphController.js#L143) | Single Point of Failure (SPOF) bottleneck supplier query with revenue aggregation. |
-| **7. Secrets & Env Variables** | [`.gitignore`](.gitignore) | Verified `.env` is excluded from Git tracking. `.env.example` provides safe placeholders. |
-| **8. Graceful Offline Failure** | [`server/config/db.js`](server/config/db.js#L26) | `testConnection()` auto-detects offline state and serves mock topology without app crashes. |
+https://supply-graph-cognodb-op7ryxair-gangadharreddy065-5671s-projects.vercel.app/
+
+## 💻 Source Code
+
+https://github.com/gangadharreddy-dev/supply-graph-cognodb
 
 ---
 
-## 1. Why a Graph Database?
+# 1. Project Overview
 
-### The Core Domain Problem
-Modern technology supply chains are intrinsically structured as directed multi-tier graphs:
-`(:Supplier)-[:SUPPLIES]->(:Component|:Material)-[:REQUIRES_COMPONENT*1..5]->(:Product)`
+SupplyGraph is a graph-based supply-chain dependency and risk analysis application built for the Wexa AI CognoDB take-home assignment.
 
-Answering fundamental business questions such as:
-> *"If TSMC or ASML suffers an operational disruption, which end-consumer products (e.g., MacBook Pro, Tesla Inverter, PS5 Pro) are impacted, what is the path depth, and what total annual revenue is at risk?"*
+The application models a technology supply chain as a connected graph containing:
 
-is fundamentally a **graph traversal problem**.
+- Suppliers
+- Components
+- Materials
+- Products
+- Facilities
 
-### Comparing openCypher on CognoDB vs. PostgreSQL RDBMS
+It allows users to:
 
+- Explore multi-tier supply-chain dependencies
+- Visualize the supply-chain graph
+- Simulate supplier disruptions
+- Identify affected downstream products
+- Trace dependency paths across multiple hops
+- Estimate revenue exposure
+- Identify potential bottleneck and Single Point of Failure (SPOF) suppliers
+- Inspect the underlying openCypher queries
+- Verify the live CognoDB backend connection
+
+The core business question is:
+
+> **If a supplier experiences a disruption, which downstream products are affected, how deep is the dependency path, and what revenue is potentially at risk?**
+
+This is naturally a graph traversal problem because the impact of a supplier can propagate through multiple components, sub-components, materials, and products.
+
+SupplyGraph uses **CognoDB Cloud** with **openCypher** over the **Bolt protocol**, accessed through the official `neo4j-driver`.
+
+---
+
+# 2. Why a Graph Database?
+
+Supply chains are naturally represented as directed dependency graphs.
+
+A simplified dependency chain looks like:
+
+```text
+Supplier
+   │
+   │ SUPPLIES
+   ▼
+Component
+   │
+   │ REQUIRES_COMPONENT
+   ▼
+Sub-Component
+   │
+   │ REQUIRES_COMPONENT / MADE_OF
+   ▼
+Component / Material
+   │
+   │ REQUIRES_COMPONENT
+   ▼
+Product
 | Architectural Dimension | Relational DB (PostgreSQL) | Graph DB (CognoDB openCypher) |
 | :--- | :--- | :--- |
 | **Multi-Hop Traversal (2–5 Hops)** | Requires 5–7 table `JOIN`s or complex `WITH RECURSIVE` CTEs. Execution time degrades exponentially with path depth. | Expressed in a **single Cypher pattern**: `(s:Supplier)-[:SUPPLIES\|REQUIRES_COMPONENT*1..5]->(p:Product)`. Executed in milliseconds via index-free adjacency. |
