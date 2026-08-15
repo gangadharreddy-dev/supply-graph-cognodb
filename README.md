@@ -365,3 +365,61 @@ Verified production state:
 ```text
 Mode = LIVE_COGNODB
 Connected = true
+```
+# 4. Technology Stack
+
+## Frontend
+
+- **React** — Component-based user interface
+- **Vite** — Frontend development and build tooling
+- **Tailwind CSS** — Responsive UI styling
+- **vis-network** — Interactive graph visualization
+
+## Backend
+
+- **Node.js** — Backend runtime
+- **Express.js** — REST API server
+
+## Database
+
+- **CognoDB Cloud** — Graph database
+- **openCypher** — Graph query language
+- **Bolt Protocol** — Database communication protocol
+
+## Database Driver
+
+- **Official `neo4j-driver`** — Used to establish the CognoDB connection and execute Cypher queries
+
+## Deployment
+
+- **Vercel** — Production deployment
+
+---
+
+## Architecture Overview
+
+```text
+┌─────────────────────────────────────────────┐
+│                 React Client                │
+│                                             │
+│  Graph View │ Disruption │ SPOF │ Queries  │
+└──────────────────────┬──────────────────────┘
+                       │
+                       │ REST API
+                       ▼
+┌─────────────────────────────────────────────┐
+│              Node.js / Express              │
+│                                             │
+│ Controllers │ Services │ Routes │ Verify   │
+└──────────────────────┬──────────────────────┘
+                       │
+                       │ neo4j-driver
+                       │ Bolt Protocol
+                       ▼
+┌─────────────────────────────────────────────┐
+│                CognoDB Cloud                │
+│                                             │
+│              openCypher Graph               │
+│                                             │
+│ Supplier → Component → Material → Product  │
+└─────────────────────────────────────────────┘
